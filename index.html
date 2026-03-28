@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>N3汉字打卡</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="page-bg"></div>
+
+  <div id="loginPage" class="page auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">🌸</div>
+      <h1>N3汉字打卡</h1>
+      <p class="subtitle">Znoの漢字N3学習スペースへようこそ。</p>
+
+      <div class="auth-tabs">
+        <button id="otpTabBtn" class="tab-btn active" type="button">验证码登录</button>
+        <button id="passwordTabBtn" class="tab-btn" type="button">密码登录</button>
+      </div>
+
+      <div id="otpPanel" class="auth-panel">
+        <label for="email">邮箱</label>
+        <input id="email" type="email" placeholder="请输入邮箱" />
+
+        <label for="code">验证码</label>
+        <input id="code" type="text" placeholder="请输入验证码" />
+
+        <div class="auth-btn-row">
+          <button id="sendCodeBtn" class="white-btn" type="button">发送验证码</button>
+          <button id="verifyBtn" class="white-btn primary-text" type="button">验证并登录</button>
+        </div>
+      </div>
+
+      <div id="passwordPanel" class="auth-panel hidden">
+        <label for="passwordEmail">邮箱</label>
+        <input id="passwordEmail" type="email" placeholder="请输入邮箱" />
+
+        <label for="password">密码</label>
+        <input id="password" type="password" placeholder="请输入密码" />
+
+        <button id="passwordLoginBtn" class="white-btn primary-text full-btn" type="button">密码登录</button>
+      </div>
+
+      <div id="authMessage" class="auth-message"></div>
+    </div>
+  </div>
+
+  <div id="setPasswordModal" class="modal-mask hidden">
+    <div class="modal-box">
+      <h3>设置密码</h3>
+      <p class="modal-desc">验证码登录成功。你可以现在设置密码，之后就能直接用密码登录。</p>
+      <input id="newPassword" type="password" placeholder="请输入至少 6 位密码" />
+      <div id="passwordModalMessage" class="auth-message"></div>
+      <div class="modal-actions">
+        <button id="savePasswordBtn" class="white-btn primary-text" type="button">保存密码</button>
+        <button id="skipPasswordBtn" class="white-btn" type="button">先跳过</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainPage" class="page main-page hidden">
+    <header class="topbar">
+      <div>
+        <h2 class="page-title">N3汉字打卡</h2>
+        <p class="top-subtitle">学习页 / 收藏夹 / 整章复习，分开浏览更适合手机端</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="openFavoritesPageBtn" class="white-btn" type="button">收藏夹</button>
+        <button id="openReviewPageBtn" class="white-btn" type="button">整章复习</button>
+        <button id="logoutBtn" class="white-btn danger-text" type="button">退出</button>
+      </div>
+    </header>
+
+    <section id="studyView" class="view-page">
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span>当前单元</span>
+          <strong id="summaryUnit">-</strong>
+        </div>
+        <div class="stat-card">
+          <span>当前章节</span>
+          <strong id="summaryChapter">-</strong>
+        </div>
+        <div class="stat-card">
+          <span>已学习</span>
+          <strong id="summaryLearned">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>已收藏</span>
+          <strong id="summaryFavorites">0</strong>
+        </div>
+      </section>
+
+      <main class="app-layout">
+        <aside class="card list-col">
+          <div class="panel-head">
+            <h3>单元</h3>
+          </div>
+          <div id="unitList"></div>
+        </aside>
+
+        <aside class="card list-col">
+          <div class="panel-head">
+            <h3>章节</h3>
+          </div>
+          <div id="chapterList"></div>
+        </aside>
+
+        <section class="study-col">
+          <div class="card study-card">
+            <div class="panel-head">
+              <div>
+                <div class="soft-label">当前学习</div>
+                <h3 id="currentUnitBadge">-</h3>
+                <p id="currentChapterBadge" class="muted">-</p>
+              </div>
+              <div class="study-actions">
+                <button id="prevBtn" class="white-btn" type="button">上一个</button>
+                <button id="nextBtn" class="white-btn" type="button">下一个</button>
+              </div>
+            </div>
+
+            <div id="kanjiList" class="kanji-pills"></div>
+
+            <div class="kanji-main">
+              <div class="kanji-box">
+                <div id="kanjiChar" class="kanji-char">—</div>
+                <div class="kanji-reading-row">
+                  <div id="readingLine" class="jp-bold">-</div>
+                  <button id="speakWordBtn" class="icon-btn" type="button">🔊</button>
+                </div>
+                <div id="meaningLine" class="cn-text">-</div>
+              </div>
+
+              <div class="vocab-box">
+                <div class="vocab-line">
+                  <span class="label">假名</span>
+                  <span id="vocabKana">-</span>
+                </div>
+                <div class="vocab-line">
+                  <span class="label">词汇</span>
+                  <span id="vocabKanji">-</span>
+                </div>
+                <div class="vocab-line">
+                  <span class="label">中文</span>
+                  <span id="vocabZh">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button id="favoriteBtn" class="white-btn" type="button">☆ 收藏夹</button>
+              <button id="learnedBtn" class="white-btn" type="button">✓ 标记已学习</button>
+            </div>
+          </div>
+
+          <div class="card content-card">
+            <h3>当前汉字例句</h3>
+            <div class="section-title">读法学习</div>
+            <div id="readingExampleKanji"></div>
+
+            <div class="section-title">写法学习</div>
+            <div id="writingExampleKanji"></div>
+          </div>
+
+          <div class="card content-card">
+            <h3>当前汉字练习</h3>
+            <div class="section-title">读句填空</div>
+            <div id="readPractice"></div>
+
+            <div class="section-title">写句填空</div>
+            <div id="writePractice"></div>
+          </div>
+
+          <div class="card content-card">
+            <h3>本课全部例句</h3>
+            <div class="section-title">汉字を読みましょう</div>
+            <div id="chapterReadExamples"></div>
+
+            <div class="section-title">汉字を書きましょう</div>
+            <div id="chapterWriteExamples"></div>
+          </div>
+        </section>
+      </main>
+    </section>
+
+    <section id="favoritesView" class="view-page hidden">
+      <div class="subpage-head">
+        <button id="backFromFavoritesBtn" class="white-btn" type="button">← 返回学习页</button>
+        <div>
+          <h3>收藏夹</h3>
+          <p class="muted">点击任意收藏内容，跳回对应汉字学习页</p>
+        </div>
+      </div>
+      <div class="card subpage-card">
+        <div id="favoritesList" class="subpage-list"></div>
+      </div>
+    </section>
+
+    <section id="reviewView" class="view-page hidden">
+      <div class="subpage-head">
+        <button id="backFromReviewBtn" class="white-btn" type="button">← 返回学习页</button>
+        <div>
+          <h3>整章复习</h3>
+          <p id="reviewSubtitle" class="muted">-</p>
+        </div>
+      </div>
+      <div class="card subpage-card">
+        <div id="weeklyReviewBox"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script type="module" src="supabase.js"></script>
+</body>
+</html>
