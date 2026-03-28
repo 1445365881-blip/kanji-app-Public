@@ -720,21 +720,52 @@ window.checkReviewAnswer = function(inputId, answer, resultId) {
     resultBox.style.color = "#cb577a";
   }
 };
+let japaneseVoices = [];
+
+function loadJapaneseVoices() {
+  const voices = window.speechSynthesis.getVoices();
+  japaneseVoices = voices.filter(v => v.lang && v.lang.includes("ja"));
+}
+
+if ("speechSynthesis" in window) {
+  loadJapaneseVoices();
+  window.speechSynthesis.onvoiceschanged = loadJapaneseVoices;
+}
+
+function getBestVoice() {
+  if (!japaneseVoices.length) loadJapaneseVoices();
+
+  // 优先级排序（更自然）
+  return japaneseVoices.find(v => v.name.includes("Google")) ||
+         japaneseVoices.find(v => v.name.includes("Microsoft")) ||
+         japaneseVoices[0] ||
+         null;
+}
 
 window.speakText = function(text) {
   if (!text) return;
-  if (!("speechSynthesis" in window) || typeof window.SpeechSynthesisUtterance === "undefined") {
-    console.warn("当前环境不支持语音播放");
+
+  if (!("speechSynthesis" in window)) {
+    console.warn("浏览器不支持语音");
     return;
+  }
+  const utter = new SpeechSynthesisUtterance(text);
+
+  // ⭐ 核心优化
+  utter.lang = "ja-JP";
+  utter.rate = 0.85;   // 更自然
+  utter.pitch = 1.0;
+
+  const voice = getBestVoice();
+  if (voice) {
+    utter.voice = voice;
+    console.log("使用语音:", voice.name);
   }
 
   window.speechSynthesis.cancel();
-  const utter = new window.SpeechSynthesisUtterance(text);
-  utter.lang = "ja-JP";
-  utter.rate = 0.9;
-  utter.pitch = 1;
   window.speechSynthesis.speak(utter);
 };
+
 
 window.onOtpLoginSuccess = function(user, savedProgress) {
   state.currentUser = user || null;
