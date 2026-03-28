@@ -741,7 +741,6 @@ function getBestVoice() {
          japaneseVoices[0] ||
          null;
 }
-
 window.speakText = function(text) {
   if (!text) return;
 
@@ -749,22 +748,54 @@ window.speakText = function(text) {
     console.warn("浏览器不支持语音");
     return;
   }
-  const utter = new SpeechSynthesisUtterance(text);
 
-  // ⭐ 核心优化
+  // ⭐ 先做“日语优化处理”（关键）
+  let processedText = String(text)
+    .replace(/\s+/g, " ")
+    .replace(/、/g, "、 ")
+    .replace(/。/g, "。 ")
+    .replace(/\//g, "、 "); // 多读音更自然
+
+  const utter = new SpeechSynthesisUtterance(processedText);
+
+  // ⭐ 核心调参（非常关键）
   utter.lang = "ja-JP";
-  utter.rate = 0.85;   // 更自然
-  utter.pitch = 1.0;
 
-  const voice = getBestVoice();
+  utter.rate = 0.78;   // 🔥 更慢 → 更像人
+  utter.pitch = 1.05;  // 🔥 稍微高一点 → 更自然
+  utter.volume = 1;
+
+  // ⭐ 选最优 voice（增强版）
+  const voices = speechSynthesis.getVoices();
+
+  const voice =
+    voices.find(v => v.name.includes("Google") && v.lang.includes("ja")) ||
+    voices.find(v => v.name.includes("Microsoft") && v.lang.includes("ja")) ||
+    voices.find(v => v.lang.includes("ja")) ||
+    null;
+
   if (voice) {
     utter.voice = voice;
     console.log("使用语音:", voice.name);
+  } else {
+    console.log("⚠️ 没有找到日语语音");
   }
 
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utter);
+  // ⭐ 停顿优化（非常重要）
+  utter.onstart = () => {
+    speechSynthesis.cancel();
+  };
+
+  // ⭐ 防止叠音
+  speechSynthesis.cancel();
+
+  // ⭐ 微延迟 → 更自然（关键技巧）
+  setTimeout(() => {
+    speechSynthesis.speak(utter);
+  }, 80);
 };
+
+
 
 
 window.onOtpLoginSuccess = function(user, savedProgress) {
