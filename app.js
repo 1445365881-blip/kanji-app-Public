@@ -720,11 +720,14 @@ window.checkReviewAnswer = function(inputId, answer, resultId) {
     resultBox.style.color = "#cb577a";
   }
 };
+
+// ⭐ 获取日语语音列表
 let japaneseVoices = [];
 
 function loadJapaneseVoices() {
-  const voices = window.speechSynthesis.getVoices();
-  japaneseVoices = voices.filter(v => v.lang && v.lang.includes("ja"));
+  const voices = window.speechSynthesis.getVoices() || [];
+  japaneseVoices = voices.filter(v => v.lang && v.lang.toLowerCase().includes("ja"));
+  console.log("可用日语语音：", japaneseVoices.map(v => v.name));
 }
 
 if ("speechSynthesis" in window) {
@@ -732,15 +735,19 @@ if ("speechSynthesis" in window) {
   window.speechSynthesis.onvoiceschanged = loadJapaneseVoices;
 }
 
+// ⭐ 选最优语音
 function getBestVoice() {
   if (!japaneseVoices.length) loadJapaneseVoices();
 
-  // 优先级排序（更自然）
-  return japaneseVoices.find(v => v.name.includes("Google")) ||
-         japaneseVoices.find(v => v.name.includes("Microsoft")) ||
-         japaneseVoices[0] ||
-         null;
+  return (
+    japaneseVoices.find(v => v.name.includes("Google") && v.lang.includes("ja")) ||
+    japaneseVoices.find(v => v.name.includes("Microsoft") && v.lang.includes("ja")) ||
+    japaneseVoices.find(v => v.lang.includes("ja")) ||
+    null
+  );
 }
+
+// ⭐ 最终语音函数
 window.speakText = function(text) {
   if (!text) return;
 
@@ -749,54 +756,33 @@ window.speakText = function(text) {
     return;
   }
 
-  // ⭐ 先做“日语优化处理”（关键）
   let processedText = String(text)
     .replace(/\s+/g, " ")
     .replace(/、/g, "、 ")
     .replace(/。/g, "。 ")
-    .replace(/\//g, "、 "); // 多读音更自然
+    .replace(/\//g, "、 ");
 
   const utter = new SpeechSynthesisUtterance(processedText);
 
-  // ⭐ 核心调参（非常关键）
   utter.lang = "ja-JP";
-
-  utter.rate = 0.78;   // 🔥 更慢 → 更像人
-  utter.pitch = 1.05;  // 🔥 稍微高一点 → 更自然
+  utter.rate = 0.78;
+  utter.pitch = 1.05;
   utter.volume = 1;
 
-  // ⭐ 选最优 voice（增强版）
-  const voices = speechSynthesis.getVoices();
-
-  const voice =
-    voices.find(v => v.name.includes("Google") && v.lang.includes("ja")) ||
-    voices.find(v => v.name.includes("Microsoft") && v.lang.includes("ja")) ||
-    voices.find(v => v.lang.includes("ja")) ||
-    null;
-
+  const voice = getBestVoice();
   if (voice) {
     utter.voice = voice;
     console.log("使用语音:", voice.name);
   } else {
-    console.log("⚠️ 没有找到日语语音");
+    console.warn("⚠️ 没有找到日语语音");
   }
 
-  // ⭐ 停顿优化（非常重要）
-  utter.onstart = () => {
-    speechSynthesis.cancel();
-  };
+  window.speechSynthesis.cancel();
 
-  // ⭐ 防止叠音
-  speechSynthesis.cancel();
-
-  // ⭐ 微延迟 → 更自然（关键技巧）
   setTimeout(() => {
-    speechSynthesis.speak(utter);
+    window.speechSynthesis.speak(utter);
   }, 80);
 };
-
-
-
 
 window.onOtpLoginSuccess = function(user, savedProgress) {
   state.currentUser = user || null;
